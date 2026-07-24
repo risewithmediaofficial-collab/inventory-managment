@@ -1,0 +1,15 @@
+import express from 'express';
+import { getAll, getById, create, update, approve, remove, getRoles, createRole } from './controller.js';
+import { protect } from '../../middleware/auth.js';
+import { authorize } from '../../middleware/role.js';
+const router = express.Router();
+router.use(protect);
+router.get('/roles', getRoles);
+router.post('/roles', authorize('super_admin', 'admin'), createRole);
+router.get('/', authorize('super_admin', 'admin'), getAll);
+router.get('/:id', getById);
+router.post('/', authorize('super_admin', 'admin'), create);
+router.put('/:id/approve', authorize('super_admin', 'admin'), approve);
+router.put('/:id', update);
+router.delete('/:id', authorize('super_admin', 'admin'), remove);
+export default router;

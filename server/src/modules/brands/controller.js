@@ -1,0 +1,8 @@
+import * as service from './service.js';
+import { sendSuccess, sendCreated, sendPaginated } from '../../utils/apiResponse.js';
+
+export const getAll = async (req, res) => { const r = await service.getBrands(req.query, req.user.companyId); sendPaginated(res, r.data, r.pagination); };
+export const getById = async (req, res) => { sendSuccess(res, await service.getBrandById(req.params.id, req.user.companyId)); };
+export const create = async (req, res) => { sendCreated(res, await service.createBrand(req.body, req.user.companyId, req.user._id)); };
+export const update = async (req, res) => { sendSuccess(res, await service.updateBrand(req.params.id, req.body, req.user.companyId)); };
+export const remove = async (req, res) => { await service.deleteBrand(req.params.id, req.user.companyId); sendSuccess(res, null, 'Deleted'); };
