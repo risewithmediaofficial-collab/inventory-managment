@@ -231,9 +231,18 @@ export default function UsersPage() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
+                const payload = {
+                  roleId: approvalForm.roleId,
+                  assignedWarehouse: approvalForm.assignedWarehouse || null,
+                  assignedBranch: approvalForm.assignedBranch || null,
+                  isApproved: approvalForm.isApproved,
+                };
+                if (approvalForm.password && approvalForm.password.trim().length >= 6) {
+                  payload.password = approvalForm.password.trim();
+                }
                 approveMutation.mutate({
                   id: selectedUser._id,
-                  payload: approvalForm,
+                  payload,
                 });
               }}
               className="space-y-4"

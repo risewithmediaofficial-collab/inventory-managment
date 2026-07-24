@@ -59,18 +59,21 @@ export const deleteUser = async (id) => {
 };
 
 export const approveUser = async (id, data) => {
-  const user = await User.findById(id).select('+password');
+  const user = await User.findById(id);
   if (!user) throw new AppError('User not found.', 404);
 
   if (data.roleId) user.role = data.roleId;
   if (data.assignedWarehouse !== undefined) user.assignedWarehouse = data.assignedWarehouse || null;
   if (data.assignedBranch !== undefined) user.assignedBranch = data.assignedBranch || null;
   
-  if (data.password && data.password.trim().length > 0) {
-    if (data.password.trim().length < 6) {
+  if (data.password && typeof data.password === 'string' && data.password.trim().length > 0) {
+    const cleanPass = data.password.trim();
+    if (cleanPass.length < 6) {
       throw new AppError('New password must be at least 6 characters long.', 400);
     }
-    user.password = data.password.trim();
+    if (!cleanPass.startsWith('$2a$') && !cleanPass.startsWith('$2b$')) {
+      user.password = cleanPass;
+    }
   }
 
   user.isApproved = data.isApproved !== undefined ? data.isApproved : true;
