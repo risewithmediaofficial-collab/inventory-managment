@@ -4,8 +4,12 @@ import { getPagination, buildPaginationMeta } from '../../utils/apiResponse.js';
 
 export const getUsers = async (query, companyId) => {
   const { page, limit, skip } = getPagination(query);
-  const filter = { companyId };
-  if (query.search) filter.$or = [{ firstName: new RegExp(query.search, 'i') }, { email: new RegExp(query.search, 'i') }];
+  const filter = {};
+  if (companyId) filter.$or = [{ companyId }, { companyId: { $exists: false } }];
+  if (query.search) {
+    filter.$or = [{ firstName: new RegExp(query.search, 'i') }, { lastName: new RegExp(query.search, 'i') }, { email: new RegExp(query.search, 'i') }];
+  }
+  if (query.approvalStatus) filter.approvalStatus = query.approvalStatus;
   if (query.isActive !== undefined) filter.isActive = query.isActive === 'true';
   const [data, total] = await Promise.all([
     User.find(filter)
