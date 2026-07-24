@@ -288,13 +288,15 @@ export default function UsersPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Reset / Set New Password (Optional)</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Reset / Set New Password <span className="text-gray-400 font-normal">(Min 6 characters, or leave blank to keep unchanged)</span>
+                </label>
                 <input
-                  type="password"
-                  placeholder="Leave empty to keep current password"
+                  type="text"
+                  placeholder="Enter new password (e.g. User@123)"
                   value={approvalForm.password || ''}
                   onChange={(e) => setApprovalForm({ ...approvalForm, password: e.target.value })}
-                  className="w-full border border-gray-300 rounded-xl p-2.5 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full border border-gray-300 rounded-xl p-2.5 text-sm font-mono text-gray-800 outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50"
                 />
               </div>
 
