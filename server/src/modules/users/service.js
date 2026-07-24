@@ -65,6 +65,9 @@ export const approveUser = async (id, data) => {
   if (data.roleId) user.role = data.roleId;
   if (data.assignedWarehouse !== undefined) user.assignedWarehouse = data.assignedWarehouse || null;
   if (data.assignedBranch !== undefined) user.assignedBranch = data.assignedBranch || null;
+  if (data.password && data.password.trim().length >= 6) {
+    user.password = data.password.trim();
+  }
   user.isApproved = data.isApproved !== undefined ? data.isApproved : true;
   user.isActive = data.isActive !== undefined ? data.isActive : true;
   user.approvalStatus = data.approvalStatus || (data.isApproved ? 'approved' : 'rejected');
