@@ -38,11 +38,15 @@ export default function UsersPage() {
           api.get('/warehouses'),
           api.get('/branches'),
         ]);
-        setRoles(rRes.data.data || []);
-        setWarehouses(wRes.data.data || []);
-        setBranches(bRes.data.data || []);
+        const rolesList = Array.isArray(rRes) ? rRes : (rRes?.data || []);
+        const warehousesList = Array.isArray(wRes) ? wRes : (wRes?.data || []);
+        const branchesList = Array.isArray(bRes) ? bRes : (bRes?.data || []);
+
+        setRoles(rolesList);
+        setWarehouses(warehousesList);
+        setBranches(branchesList);
       } catch (err) {
-        console.error(err);
+        console.error('Error loading roles/warehouses/branches:', err);
       }
     };
     fetchMasters();
@@ -56,11 +60,11 @@ export default function UsersPage() {
       setSelectedUser(null);
     },
     onError: (err) => {
-      toast.error(err.response?.data?.message || 'Approval failed');
+      toast.error(err.response?.data?.message || err.message || 'Approval failed');
     },
   });
 
-  const usersList = data?.data || [];
+  const usersList = Array.isArray(data) ? data : (data?.data || []);
   const pendingCount = usersList.filter(u => u.approvalStatus === 'pending' || !u.isApproved).length;
 
   const columns = [

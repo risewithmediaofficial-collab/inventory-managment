@@ -2,10 +2,9 @@ import User, { Role } from './model.js';
 import { AppError } from '../../utils/AppError.js';
 import { getPagination, buildPaginationMeta } from '../../utils/apiResponse.js';
 
-export const getUsers = async (query, companyId) => {
+export const getUsers = async (query) => {
   const { page, limit, skip } = getPagination(query);
   const filter = {};
-  if (companyId) filter.$or = [{ companyId }, { companyId: { $exists: false } }];
   if (query.search) {
     filter.$or = [{ firstName: new RegExp(query.search, 'i') }, { lastName: new RegExp(query.search, 'i') }, { email: new RegExp(query.search, 'i') }];
   }
@@ -26,8 +25,8 @@ export const getUsers = async (query, companyId) => {
   return { data, pagination: buildPaginationMeta(total, page, limit) };
 };
 
-export const getUserById = async (id, companyId) => {
-  const user = await User.findOne({ _id: id, companyId })
+export const getUserById = async (id) => {
+  const user = await User.findById(id)
     .populate('role')
     .populate('assignedWarehouse')
     .populate('assignedBranch')
@@ -42,8 +41,8 @@ export const createUser = async (data, companyId, creatorId) => {
   return User.create({ ...data, companyId, createdBy: creatorId });
 };
 
-export const updateUser = async (id, data, companyId) => {
-  const user = await User.findOne({ _id: id, companyId });
+export const updateUser = async (id, data) => {
+  const user = await User.findById(id);
   if (!user) throw new AppError('User not found.', 404);
   if (data.password) delete data.password; // Don't update password here
   return User.findByIdAndUpdate(id, data, { new: true })
@@ -53,14 +52,14 @@ export const updateUser = async (id, data, companyId) => {
     .populate('assignedBranch');
 };
 
-export const deleteUser = async (id, companyId) => {
-  const user = await User.findOne({ _id: id, companyId });
+export const deleteUser = async (id) => {
+  const user = await User.findById(id);
   if (!user) throw new AppError('User not found.', 404);
   await User.findByIdAndDelete(id);
 };
 
-export const approveUser = async (id, data, companyId) => {
-  const user = await User.findOne({ _id: id, companyId });
+export const approveUser = async (id, data) => {
+  const user = await User.findById(id);
   if (!user) throw new AppError('User not found.', 404);
 
   if (data.roleId) user.role = data.roleId;
