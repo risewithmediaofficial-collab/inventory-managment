@@ -77,12 +77,10 @@ export default function RegisterPage() {
       <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">
         {mutation.isError && (
           <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-danger text-sm font-medium animate-fade-in space-y-1">
-            <p>{mutation.error?.response?.data?.message || mutation.error?.message || 'Registration failed.'}</p>
-            {mutation.error?.response?.status === 409 && (
-              <Link to="/login" className="inline-block text-xs text-indigo-700 hover:underline font-bold mt-1">
-                → Click here to Sign In with this email
-              </Link>
-            )}
+            <p>{mutation.error?.message || mutation.error?.response?.data?.message || 'Registration failed.'}</p>
+            <Link to="/login" className="inline-block text-xs text-indigo-700 hover:underline font-bold mt-1">
+              → Click here to Sign In with your existing account
+            </Link>
           </div>
         )}
         <div className="grid grid-cols-2 gap-4">

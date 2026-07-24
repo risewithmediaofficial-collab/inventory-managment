@@ -102,6 +102,8 @@ export const resetAndSeedDatabase = async () => {
       role: superAdminRole._id,
       companyId: company._id,
       isActive: true,
+      isApproved: true,
+      approvalStatus: 'approved',
     });
 
     await User.create({
@@ -112,6 +114,8 @@ export const resetAndSeedDatabase = async () => {
       role: warehouseRole._id,
       companyId: company._id,
       isActive: true,
+      isApproved: true,
+      approvalStatus: 'approved',
     });
 
     await User.create({
@@ -122,6 +126,8 @@ export const resetAndSeedDatabase = async () => {
       role: accountantRole._id,
       companyId: company._id,
       isActive: true,
+      isApproved: true,
+      approvalStatus: 'approved',
     });
 
     await User.create({
@@ -132,6 +138,8 @@ export const resetAndSeedDatabase = async () => {
       role: salesRole._id,
       companyId: company._id,
       isActive: true,
+      isApproved: true,
+      approvalStatus: 'approved',
     });
 
     company.createdBy = admin._id;

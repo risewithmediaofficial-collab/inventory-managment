@@ -37,6 +37,7 @@ const processQueue = (error, token = null) => {
 api.interceptors.response.use(
   (response) => response.data,
   async (error) => {
+    const originalRequest = error.config;
     const isAuthRoute = originalRequest?.url?.includes('/auth/login') || originalRequest?.url?.includes('/auth/register');
     const message = error.response?.data?.message || error.message || 'Something went wrong';
 
