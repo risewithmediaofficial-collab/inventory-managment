@@ -1,24 +1,32 @@
 # Dependencies
 node_modules/
-client/node_modules/
-server/node_modules/
+**/node_modules/
 
 # Builds & Cache
 dist/
+**/dist/
 build/
+**/build/
 .cache/
 
 # Environment variables
 .env
+**/.env
 .env.local
+**/.env.local
 .env.*.local
+**/.env.*.local
 
-# Logs
+# Logs & Uploads
 logs/
+**/logs/
 *.log
 npm-debug.log*
+uploads/
+**/uploads/
 
 # IDE & OS files
 .vscode/
 .idea/
 .DS_Store
+
