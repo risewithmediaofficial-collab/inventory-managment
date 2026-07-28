@@ -194,6 +194,16 @@ docker-compose down
 
 ---
 
+## ⚙️ GitHub Actions CI/CD Pipeline
+
+The project includes an automated GitHub Actions CI/CD workflow defined in [.github/workflows/deploy.yml](file:///.github/workflows/deploy.yml):
+
+- **Automated Validation**: On every `push` or `pull_request` to `main`, Node.js dependencies are checked, and the React frontend bundle is built.
+- **Docker Stack Verification**: Validates `docker-compose.yml` syntax and builds production Docker images for both `backend` and `frontend`.
+- **Automated Deployment Trigger**: Triggers container rebuilds upon pushing to `main`.
+
+---
+
 ## 📜 Available Scripts
 
 ### **Backend Scripts (`/backend`)**

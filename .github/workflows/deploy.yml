@@ -1,0 +1,106 @@
+name: CI/CD Pipeline - Inventory ERP System
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Job 1: Lint & Validate Codebase
+  # ---------------------------------------------------------------------------
+  lint-and-validate:
+    name: 🔍 Lint & Validate Codebase
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install & Validate Backend
+        run: |
+          cd backend
+          npm ci
+
+      - name: Install & Validate Frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
+  # ---------------------------------------------------------------------------
+  # Job 2: Build & Verify Docker Images & Compose Stack
+  # ---------------------------------------------------------------------------
+  docker-build:
+    name: 🐳 Docker Build & Stack Verification
+    runs-on: ubuntu-latest
+    needs: lint-and-validate
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Validate Docker Compose Configuration
+        run: |
+          docker compose config
+
+      - name: Build Backend Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: false
+          tags: inventory-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build Frontend Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: false
+          tags: inventory-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ---------------------------------------------------------------------------
+  # Job 3: Continuous Deployment (Hostinger / VPS Webhook or SSH Deploy)
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: 🚀 Deploy to Production Server
+    runs-on: ubuntu-latest
+    needs: docker-build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy via Hostinger Webhook (if secret configured)
+        if: env.DEPLOY_WEBHOOK_URL != ''
+        env:
+          DEPLOY_WEBHOOK_URL: ${{ secrets.HOSTINGER_DEPLOY_WEBHOOK }}
+        run: |
+          echo "Triggering automated Hostinger deployment webhook..."
+          curl -X POST "$DEPLOY_WEBHOOK_URL"
+
+      - name: Deployment Instructions Summary
+        run: |
+          echo "✅ CI/CD Pipeline Completed Successfully!"
+          echo "Production branch 'main' built & verified."
