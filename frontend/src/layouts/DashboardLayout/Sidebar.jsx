@@ -1,6 +1,7 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import { toggleSidebar, setMobileSidebar } from '@store/slices/uiSlice.js';
 import { logout } from '@store/slices/authSlice.js';
 import { useNavigate } from 'react-router-dom';
@@ -24,7 +25,6 @@ import StorageIcon from '@mui/icons-material/Storage';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import MoneyOffIcon from '@mui/icons-material/MoneyOff';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import InsightsIcon from '@mui/icons-material/Insights';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -40,7 +40,6 @@ import CloseIcon from '@mui/icons-material/Close';
 const navGroups = [
   {
     label: 'Home',
-    color: 'indigo',
     items: [
       { label: 'Dashboard',   to: '/dashboard',  icon: DashboardIcon,   bg: '#4f46e5' },
       { label: 'POS Billing', to: '/pos',         icon: PointOfSaleIcon, bg: '#7c3aed' },
@@ -48,7 +47,6 @@ const navGroups = [
   },
   {
     label: 'Inventory',
-    color: 'emerald',
     items: [
       { label: 'Products',    to: '/products',    icon: InventoryIcon,   bg: '#059669' },
       { label: 'Categories',  to: '/categories',  icon: CategoryIcon,    bg: '#0d9488' },
@@ -60,7 +58,6 @@ const navGroups = [
   },
   {
     label: 'Parties',
-    color: 'orange',
     items: [
       { label: 'Customers',   to: '/customers',   icon: PeopleAltIcon,   bg: '#ea580c' },
       { label: 'Suppliers',   to: '/suppliers',   icon: LocalShippingIcon, bg: '#d97706' },
@@ -68,7 +65,6 @@ const navGroups = [
   },
   {
     label: 'Transactions',
-    color: 'purple',
     items: [
       { label: 'Purchases',   to: '/purchases',   icon: ShoppingCartIcon, bg: '#9333ea' },
       { label: 'Sales',       to: '/sales',        icon: ReceiptIcon,     bg: '#db2777' },
@@ -78,7 +74,6 @@ const navGroups = [
   },
   {
     label: 'Godown & Stock',
-    color: 'teal',
     items: [
       { label: 'Stock View',      to: '/inventory',           icon: StorageIcon,      bg: '#0f766e' },
       { label: 'Stock Movements', to: '/stock-movements',     icon: SwapHorizIcon,    bg: '#0284c7' },
@@ -87,7 +82,6 @@ const navGroups = [
   },
   {
     label: 'Finance',
-    color: 'rose',
     items: [
       { label: 'Ledger & P&L',  to: '/finance-ledger',       icon: AccountBalanceIcon, bg: '#be185d' },
       { label: 'Branches',      to: '/branches',              icon: AccountTreeIcon,    bg: '#9f1239' },
@@ -95,7 +89,6 @@ const navGroups = [
   },
   {
     label: 'Reports & BI',
-    color: 'amber',
     items: [
       { label: 'Reports',     to: '/reports',                 icon: BarChartIcon,   bg: '#b45309' },
       { label: 'BI Analytics',to: '/intelligent-analytics',  icon: InsightsIcon,   bg: '#92400e' },
@@ -103,7 +96,6 @@ const navGroups = [
   },
   {
     label: 'Admin',
-    color: 'slate',
     items: [
       { label: 'Notifications', to: '/notifications', icon: NotificationsIcon,  bg: '#475569' },
       { label: 'Users',          to: '/users',          icon: ManageAccountsIcon, bg: '#334155' },
@@ -113,16 +105,15 @@ const navGroups = [
   },
 ];
 
-// Colored icon bubble
-function NavIcon({ Icon, bg, size = 20, collapsed = false }) {
+function NavIcon({ Icon, bg, size = 18, collapsed = false }) {
   return (
     <span
-      className="flex items-center justify-center rounded-lg flex-shrink-0"
+      className="flex items-center justify-center rounded-lg flex-shrink-0 transition-transform hover:scale-105"
       style={{
         background: bg,
-        width: collapsed ? 34 : 30,
-        height: collapsed ? 34 : 30,
-        minWidth: collapsed ? 34 : 30,
+        width: collapsed ? 34 : 28,
+        height: collapsed ? 34 : 28,
+        minWidth: collapsed ? 34 : 28,
       }}
     >
       <Icon sx={{ fontSize: size, color: '#fff' }} />
@@ -137,12 +128,25 @@ export default function Sidebar() {
   const { user } = useSelector((s) => s.auth);
   const { unreadCount } = useSelector((s) => s.notifications);
 
+  const [isDesktop, setIsDesktop] = useState(
+    typeof window !== 'undefined' ? window.innerWidth >= 1024 : true
+  );
+
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const handleLogout = () => {
     dispatch(logout());
+    dispatch(setMobileSidebar(false));
     navigate('/login');
   };
 
-  const sidebarW = sidebarCollapsed ? 72 : 240;
+  // On mobile screens, always present full drawer format when drawer is open
+  const isCollapsed = isDesktop ? sidebarCollapsed : false;
+  const sidebarWidth = isDesktop ? (sidebarCollapsed ? 72 : 240) : 280;
 
   return (
     <>
@@ -150,80 +154,75 @@ export default function Sidebar() {
       <AnimatePresence>
         {sidebarMobileOpen && (
           <motion.div
-            key="backdrop"
+            key="mobile-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-slate-900/65 backdrop-blur-xs z-40 lg:hidden cursor-pointer"
             onClick={() => dispatch(setMobileSidebar(false))}
           />
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
-      <motion.aside
-        animate={{ width: sidebarW }}
-        transition={{ duration: 0.25, ease: 'easeInOut' }}
-        className={`fixed top-0 left-0 h-screen z-50 flex flex-col overflow-hidden transition-transform duration-300 ${
+      {/* Sidebar Drawer */}
+      <aside
+        className={`fixed top-0 left-0 h-screen z-50 flex flex-col overflow-hidden transition-all duration-300 ease-in-out shadow-2xl ${
           sidebarMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
         style={{
-          width: sidebarW,
+          width: sidebarWidth,
           background: 'linear-gradient(180deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
           borderRight: '1px solid rgba(255,255,255,0.08)',
         }}
       >
-        {/* Logo */}
-        <div className="flex items-center gap-2.5 px-3 py-4 border-b border-white/10">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+        {/* Logo & Header */}
+        <div className="flex items-center gap-2.5 px-3.5 py-4 border-b border-white/10 flex-shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-md">
             <StoreIcon sx={{ fontSize: 20, color: '#fff' }} />
           </div>
-          <AnimatePresence>
-            {!sidebarCollapsed && (
-              <motion.div
-                key="logo-text"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.2 }}
-              >
-                <p className="font-extrabold text-white text-sm leading-tight">Inventory Management</p>
-                <p className="text-indigo-300 text-2xs font-medium">ERP Management</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          
+          {!isCollapsed && (
+            <div className="flex-1 min-w-0">
+              <p className="font-extrabold text-white text-sm leading-tight truncate">Inventory Management</p>
+              <p className="text-indigo-300 text-2xs font-medium truncate">ERP System</p>
+            </div>
+          )}
 
-          {/* Mobile close button */}
+          {/* Mobile Close Button */}
           <button
             onClick={() => dispatch(setMobileSidebar(false))}
-            className="ml-auto p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition lg:hidden flex items-center justify-center"
+            className="ml-auto p-1.5 rounded-lg bg-white/10 hover:bg-white/20 active:bg-white/30 text-white transition lg:hidden flex items-center justify-center"
             title="Close menu"
+            aria-label="Close menu"
           >
             <CloseIcon sx={{ fontSize: 20 }} />
           </button>
 
-          {/* Desktop collapse toggle */}
+          {/* Desktop Toggle Button */}
           <button
             onClick={() => dispatch(toggleSidebar())}
-            className="ml-auto p-1.5 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition hidden lg:flex"
+            className="ml-auto p-1.5 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition hidden lg:flex items-center justify-center"
+            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            <motion.div animate={{ rotate: sidebarCollapsed ? 180 : 0 }} transition={{ duration: 0.25 }}>
+            <div className={`transition-transform duration-200 ${sidebarCollapsed ? 'rotate-180' : ''}`}>
               <ChevronLeftIcon sx={{ fontSize: 18 }} />
-            </motion.div>
+            </div>
           </button>
         </div>
 
-        {/* Nav items */}
+        {/* Navigation items */}
         <nav className="flex-1 overflow-y-auto py-2 scrollbar-none">
           {navGroups.map((group) => (
-            <div key={group.label} className="mb-1">
+            <div key={group.label} className="mb-2">
               {/* Group label */}
-              {!sidebarCollapsed && (
-                <p className="px-4 pt-3 pb-1 text-2xs font-extrabold uppercase tracking-widest text-white/30">
+              {!isCollapsed ? (
+                <p className="px-4 pt-3 pb-1 text-2xs font-extrabold uppercase tracking-wider text-indigo-300/40">
                   {group.label}
                 </p>
+              ) : (
+                <div className="mx-3 my-2 border-t border-white/10" />
               )}
-              {sidebarCollapsed && <div className="mx-3 my-2 border-t border-white/10" />}
 
               {group.items.map((item) => (
                 <NavLink
@@ -231,34 +230,34 @@ export default function Sidebar() {
                   to={item.to}
                   title={item.label}
                   onClick={() => dispatch(setMobileSidebar(false))}
+                  className="block select-none"
                 >
                   {({ isActive }) => (
-                    <motion.div
-                      whileHover={{ x: 2 }}
+                    <div
                       className={`
-                        flex items-center gap-2.5 mx-2 my-0.5 rounded-xl transition-all cursor-pointer
-                        ${sidebarCollapsed ? 'px-1.5 py-1.5 justify-center' : 'px-2.5 py-2'}
+                        flex items-center gap-2.5 mx-2 my-0.5 rounded-xl transition-all cursor-pointer text-xs font-medium
+                        ${isCollapsed ? 'px-1.5 py-2 justify-center' : 'px-3 py-2.5'}
                         ${isActive
-                          ? 'bg-white/15 shadow-sm ring-1 ring-white/20'
-                          : 'hover:bg-white/8'
+                          ? 'bg-gradient-to-r from-indigo-500/25 to-purple-500/25 text-white font-semibold shadow-xs ring-1 ring-indigo-400/30'
+                          : 'text-slate-300 hover:text-white hover:bg-white/10'
                         }
                       `}
                     >
-                      <NavIcon Icon={item.icon} bg={item.bg} collapsed={sidebarCollapsed} />
+                      <NavIcon Icon={item.icon} bg={item.bg} collapsed={isCollapsed} />
 
-                      {!sidebarCollapsed && (
-                        <span className={`text-xs font-semibold truncate ${isActive ? 'text-white' : 'text-white/70'}`}>
+                      {!isCollapsed && (
+                        <span className={`flex-1 truncate ${isActive ? 'text-white font-semibold' : 'text-slate-300'}`}>
                           {item.label}
                         </span>
                       )}
 
-                      {/* Notification badge for notifications */}
-                      {!sidebarCollapsed && item.to === '/notifications' && unreadCount > 0 && (
-                        <span className="ml-auto bg-rose-500 text-white text-2xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      {/* Notification badge */}
+                      {!isCollapsed && item.to === '/notifications' && unreadCount > 0 && (
+                        <span className="ml-auto bg-rose-500 text-white text-2xs font-bold rounded-full px-1.5 py-0.5 min-w-[20px] text-center shadow-xs">
                           {unreadCount > 9 ? '9+' : unreadCount}
                         </span>
                       )}
-                    </motion.div>
+                    </div>
                   )}
                 </NavLink>
               ))}
@@ -266,38 +265,39 @@ export default function Sidebar() {
           ))}
         </nav>
 
-        {/* User profile + logout */}
-        <div className="border-t border-white/10 p-3">
-          {!sidebarCollapsed ? (
+        {/* User profile + Logout */}
+        <div className="border-t border-white/10 p-3 flex-shrink-0 bg-black/20">
+          {!isCollapsed ? (
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center flex-shrink-0">
+              <div className="w-8.5 h-8.5 rounded-xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center flex-shrink-0 shadow-sm">
                 <span className="text-white font-extrabold text-xs">
                   {user?.firstName?.charAt(0) || user?.name?.charAt(0) || 'A'}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-bold text-white truncate">{user?.firstName || user?.name || 'Admin'}</p>
-                <p className="text-2xs text-white/40 truncate">{user?.role?.displayName || 'Administrator'}</p>
+                <p className="text-2xs text-indigo-200/60 truncate">{user?.role?.displayName || 'Administrator'}</p>
               </div>
               <button
                 onClick={handleLogout}
-                className="p-1.5 rounded-lg hover:bg-rose-500/20 text-white/40 hover:text-rose-400 transition"
+                className="p-1.5 rounded-lg hover:bg-rose-500/20 text-white/50 hover:text-rose-400 transition flex items-center justify-center"
                 title="Logout"
               >
-                <LogoutIcon sx={{ fontSize: 16 }} />
+                <LogoutIcon sx={{ fontSize: 18 }} />
               </button>
             </div>
           ) : (
             <button
               onClick={handleLogout}
-              className="w-full flex items-center justify-center p-2 rounded-xl hover:bg-rose-500/20 text-white/40 hover:text-rose-400 transition"
+              className="w-full flex items-center justify-center p-2 rounded-xl hover:bg-rose-500/20 text-white/50 hover:text-rose-400 transition"
               title="Logout"
             >
               <LogoutIcon sx={{ fontSize: 18 }} />
             </button>
           )}
         </div>
-      </motion.aside>
+      </aside>
     </>
   );
 }
+

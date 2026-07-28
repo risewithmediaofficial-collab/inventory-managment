@@ -1,8 +1,9 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import Sidebar from './Sidebar.jsx';
 import Header from './Header.jsx';
+import ContentLoader from '@components/ui/ContentLoader.jsx';
 import { setMobileSidebar } from '@store/slices/uiSlice.js';
 import { initSocket, disconnectSocket, subscribeToEvent } from '@services/socket.js';
 import { addNotification } from '@store/slices/notificationSlice.js';
@@ -11,6 +12,7 @@ import toast from 'react-hot-toast';
 
 export default function DashboardLayout() {
   const dispatch = useDispatch();
+  const location = useLocation();
   const { sidebarCollapsed, sidebarMobileOpen } = useSelector((s) => s.ui);
   const { accessToken } = useSelector((s) => s.auth);
   const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= 1024 : true);
@@ -20,6 +22,24 @@ export default function DashboardLayout() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Auto close mobile sidebar & scroll to top on route change
+  useEffect(() => {
+    dispatch(setMobileSidebar(false));
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [location.pathname, dispatch]);
+
+  // Body scroll lock on mobile when sidebar is open
+  useEffect(() => {
+    if (!isDesktop && sidebarMobileOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [sidebarMobileOpen, isDesktop]);
 
   // Initialize socket
   useEffect(() => {
@@ -56,15 +76,7 @@ export default function DashboardLayout() {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      {/* Mobile overlay */}
-      {sidebarMobileOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-gray-900/50 lg:hidden"
-          onClick={() => dispatch(setMobileSidebar(false))}
-        />
-      )}
-
-      {/* Sidebar */}
+      {/* Sidebar handles its own mobile backdrop & drawer */}
       <Sidebar />
 
       {/* Main content */}
@@ -75,10 +87,13 @@ export default function DashboardLayout() {
         <Header />
         <main className="flex-1 overflow-y-auto p-3 sm:p-6">
           <div className="max-w-screen-2xl mx-auto">
-            <Outlet />
+            <Suspense fallback={<ContentLoader />}>
+              <Outlet />
+            </Suspense>
           </div>
         </main>
       </div>
     </div>
   );
 }
+
