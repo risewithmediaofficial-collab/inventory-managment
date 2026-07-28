@@ -185,7 +185,7 @@ docker-compose up -d --build
 This starts three orchestrated containers:
 - **`inventory_db`**: MongoDB container running on port `27017` with persistent data volume.
 - **`inventory_backend`**: Node.js / Express REST API running on port `5000`.
-- **`inventory_frontend`**: Nginx web server serving compiled React SPA on port `84` (mapped `84:80`), pre-configured to reverse-proxy `/api` & WebSocket calls to the backend.
+- **`inventory_frontend`**: Nginx web server serving compiled React SPA on port `85` (mapped `85:80`), pre-configured to reverse-proxy `/api` & WebSocket calls to the backend.
 
 ### **2. Stop Containers**
 ```bash
