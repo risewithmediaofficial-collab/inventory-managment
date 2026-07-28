@@ -21,6 +21,8 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           port: 22
+          timeout: 60s          # ← connection timeout
+          command_timeout: 10m  # ← script executi
           script: |
             cd /docker/inventory-managment
             git pull origin main
