@@ -55,6 +55,16 @@ export const seedDatabase = async () => {
       isActive: true,
     });
 
+    await User.create({
+      firstName: 'Admin',
+      lastName: 'Example',
+      email: 'admin@example.com',
+      password: 'Admin@123',
+      role: role._id,
+      companyId: company._id,
+      isActive: true,
+    });
+
     company.createdBy = admin._id;
     await company.save();
 

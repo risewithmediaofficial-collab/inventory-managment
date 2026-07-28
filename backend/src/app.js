@@ -54,8 +54,9 @@ app.use(helmet({
 }));
 
 // CORS
+const allowedOrigins = env.CLIENT_URL && env.CLIENT_URL !== '*' ? env.CLIENT_URL : true;
 app.use(cors({
-  origin: env.CLIENT_URL,
+  origin: (origin, callback) => callback(null, true),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -93,7 +94,19 @@ if (env.isDev) {
 // Static files
 app.use('/uploads', express.static(path.join(process.cwd(), env.UPLOAD_PATH)));
 
-// Health check
+// Root & Health check
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Inventory ERP Backend API is running',
+    version: '1.0.0',
+    documentation: '/api/v1',
+    health: '/health',
+    environment: env.NODE_ENV,
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.get('/health', (req, res) => {
   res.json({
     success: true,
