@@ -559,6 +559,7 @@ export default function POSBillingPage() {
     try {
       const payload = {
         type: 'invoice',
+        status: 'confirmed',
         customer: selectedCustomer || undefined,
         warehouse: selectedWarehouse || undefined,
         items: cart.map((i) => ({

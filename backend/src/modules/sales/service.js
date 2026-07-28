@@ -122,11 +122,13 @@ export const createSale = async (data, companyId, userId) => {
   const dueAmount     = totalAmount - paidAmount;
   const paymentStatus = paidAmount <= 0 ? 'unpaid' : paidAmount >= totalAmount ? 'paid' : 'partial';
   const invoiceNumber = await generateInvoiceNumber(companyId, invoiceType);
+  const status        = data.status || (invoiceType === 'invoice' ? 'confirmed' : 'draft');
 
   // ── 4. Create the sale document ──────────────────────────────────────────
   const sale = await Sale.create({
     ...data,
     type: invoiceType,
+    status,
     items,
     invoiceNumber,
     subtotal,

@@ -39,7 +39,11 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     const isAuthRoute = originalRequest?.url?.includes('/auth/login') || originalRequest?.url?.includes('/auth/register');
-    const message = error.response?.data?.message || error.message || 'Something went wrong';
+    const resData = error.response?.data;
+    let message = resData?.message || error.message || 'Something went wrong';
+    if (resData?.errors && Array.isArray(resData.errors) && resData.errors.length > 0) {
+      message = resData.errors.map((e) => e.message || e).join('. ');
+    }
 
     // Handle 401 — attempt token refresh (except for login/register endpoints)
     if (error.response?.status === 401 && !isAuthRoute && !originalRequest._retry) {

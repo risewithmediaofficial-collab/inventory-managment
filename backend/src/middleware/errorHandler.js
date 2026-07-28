@@ -10,7 +10,8 @@ const errorHandler = (err, req, res, next) => { // eslint-disable-line no-unused
   // Mongoose Validation Error
   if (err.name === 'ValidationError') {
     statusCode = 400;
-    message = 'Validation Error';
+    const errorDetails = Object.values(err.errors).map((e) => e.message);
+    message = errorDetails.length > 0 ? errorDetails.join('. ') : 'Validation Error';
     errors = Object.values(err.errors).map((e) => ({
       field: e.path,
       message: e.message,

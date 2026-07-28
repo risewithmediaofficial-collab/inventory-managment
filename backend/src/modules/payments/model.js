@@ -13,7 +13,7 @@ const paymentSchema = new mongoose.Schema(
     paymentDate: { type: Date, default: Date.now },
     paymentMethod: {
       type: String,
-      enum: ['cash', 'bank_transfer', 'upi', 'cheque', 'dd', 'credit_card', 'debit_card', 'other'],
+      enum: ['cash', 'bank', 'bank_transfer', 'upi', 'card', 'cheque', 'dd', 'credit', 'credit_card', 'debit_card', 'netbanking', 'other'],
       required: true,
     },
     referenceNumber: String, // cheque no, UPI ref, etc.

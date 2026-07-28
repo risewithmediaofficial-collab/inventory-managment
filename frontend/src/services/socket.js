@@ -3,16 +3,31 @@ import { store } from '../store/index.js';
 
 let socket = null;
 
+const getSocketUrl = () => {
+  if (import.meta.env.VITE_SOCKET_URL) return import.meta.env.VITE_SOCKET_URL;
+  if (typeof window !== 'undefined') {
+    const { protocol, hostname, port } = window.location;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return `${protocol}//${hostname}:5000`;
+    }
+    return `${protocol}//${hostname}${port ? `:${port}` : ''}`;
+  }
+  return 'http://localhost:5000';
+};
+
 export const initSocket = () => {
   const token = store.getState().auth?.accessToken;
   if (!token || socket?.connected) return socket;
 
-  socket = io('http://localhost:5000', {
+  const url = getSocketUrl();
+
+  socket = io(url, {
     auth: { token },
-    transports: ['websocket', 'polling'],
+    transports: ['polling', 'websocket'],
     reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 2000,
+    reconnectionAttempts: 3,
+    reconnectionDelay: 3000,
+    timeout: 5000,
   });
 
   socket.on('connect', () => {
@@ -24,7 +39,7 @@ export const initSocket = () => {
   });
 
   socket.on('connect_error', (err) => {
-    console.error('[Socket] Connection error:', err.message);
+    console.warn('[Socket] Connection error:', err.message);
   });
 
   return socket;
