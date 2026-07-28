@@ -94,16 +94,25 @@ export const login = async ({ email, identifier, password }) => {
     throw new AppError('Invalid mobile number/email or password.', 401);
   }
 
-  if (user.approvalStatus === 'pending' || !user.isApproved) {
-    throw new AppError('Your account is pending Admin approval, Role & Warehouse assignment. Please contact your M K Corporates Administrator.', 403);
-  }
+  const isSuperAdmin = user.role?.name === 'super_admin' || user.role?.name === 'admin';
 
-  if (user.approvalStatus === 'rejected') {
-    throw new AppError('Your account approval request was declined by an Administrator.', 403);
-  }
+  if (isSuperAdmin && (user.approvalStatus !== 'approved' || !user.isApproved || !user.isActive)) {
+    user.isApproved = true;
+    user.approvalStatus = 'approved';
+    user.isActive = true;
+    await user.save({ validateBeforeSave: false });
+  } else {
+    if (user.approvalStatus === 'pending' || !user.isApproved) {
+      throw new AppError('Your account is pending Admin approval, Role & Warehouse assignment. Please contact your M K Corporates Administrator.', 403);
+    }
 
-  if (!user.isActive) {
-    throw new AppError('Your account is inactive. Please contact an Administrator.', 403);
+    if (user.approvalStatus === 'rejected') {
+      throw new AppError('Your account approval request was declined by an Administrator.', 403);
+    }
+
+    if (!user.isActive) {
+      throw new AppError('Your account is inactive. Please contact an Administrator.', 403);
+    }
   }
 
   const { accessToken, refreshToken } = generateTokens(user._id, user.companyId);

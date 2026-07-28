@@ -13,10 +13,28 @@ import logger from './config/logger.js';
 
 export const seedDatabase = async () => {
   try {
-    // Check if demo user exists
+    // Update any existing admin accounts to ensure they are approved
+    const existingSuperAdminRole = await Role.findOne({ name: 'super_admin' });
+    if (existingSuperAdminRole) {
+      await User.updateMany(
+        { role: existingSuperAdminRole._id },
+        { $set: { isApproved: true, approvalStatus: 'approved', isActive: true, isEmailVerified: true } }
+      );
+    }
+
+    await User.updateMany(
+      {
+        $or: [
+          { email: { $in: ['admin@demo.com', 'admin@example.com', 'admin@inventory.com'] } },
+          { phone: '9443434343' }
+        ]
+      },
+      { $set: { isApproved: true, approvalStatus: 'approved', isActive: true, isEmailVerified: true } }
+    );
+
     const existingAdmin = await User.findOne({ email: 'admin@demo.com' });
     if (existingAdmin) {
-      logger.info('Database already seeded. Skipping.');
+      logger.info('Database already seeded. Ensured admin users are approved.');
       return;
     }
 
@@ -44,7 +62,7 @@ export const seedDatabase = async () => {
       address: { street: '123 Business Park', city: 'Mumbai', state: 'Maharashtra', zipCode: '400001', country: 'India' },
     });
 
-    // 3. Admin User
+    // 3. Admin Users
     const admin = await User.create({
       firstName: 'Admin',
       lastName: 'User',
@@ -53,6 +71,9 @@ export const seedDatabase = async () => {
       role: role._id,
       companyId: company._id,
       isActive: true,
+      isApproved: true,
+      approvalStatus: 'approved',
+      isEmailVerified: true,
     });
 
     await User.create({
@@ -63,6 +84,23 @@ export const seedDatabase = async () => {
       role: role._id,
       companyId: company._id,
       isActive: true,
+      isApproved: true,
+      approvalStatus: 'approved',
+      isEmailVerified: true,
+    });
+
+    await User.create({
+      firstName: 'Admin',
+      lastName: 'Inventory',
+      email: 'admin@inventory.com',
+      phone: '9443434343',
+      password: 'Admin@123',
+      role: role._id,
+      companyId: company._id,
+      isActive: true,
+      isApproved: true,
+      approvalStatus: 'approved',
+      isEmailVerified: true,
     });
 
     company.createdBy = admin._id;
