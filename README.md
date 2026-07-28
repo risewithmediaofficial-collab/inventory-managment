@@ -171,6 +171,29 @@ npm run dev
 
 ---
 
+## 🐳 Docker Container Deployment
+
+The project includes full Docker support for containerized deployment using Docker & Docker Compose.
+
+### **1. Run Entire Stack with Docker Compose**
+Run the following command from the root directory:
+
+```bash
+docker-compose up -d --build
+```
+
+This starts three orchestrated containers:
+- **`inventory_db`**: MongoDB container running on port `27017` with persistent data volume.
+- **`inventory_backend`**: Node.js / Express REST API running on port `5000`.
+- **`inventory_frontend`**: Nginx web server serving compiled React SPA on port `80`, pre-configured to reverse-proxy `/api` & WebSocket calls to the backend.
+
+### **2. Stop Containers**
+```bash
+docker-compose down
+```
+
+---
+
 ## 📜 Available Scripts
 
 ### **Backend Scripts (`/backend`)**
